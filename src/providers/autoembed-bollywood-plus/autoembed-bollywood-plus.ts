@@ -61,6 +61,7 @@ export class AutoEmbedBollywoodPlus extends BaseProvider {
                             url: this.createProxyUrl(m[2], this.HEADERS as any),
                             type: (m[2].includes('.m3u8') ? 'hls' : 'mp4') as SourceType,
                             quality: m[1].replace('p', ''),
+                            audioTracks: [{ language: 'eng', label: 'English' }],
                             provider: { id: this.id, name: `${this.name} ${m[1]}` }
                         });
                     }
@@ -75,6 +76,7 @@ export class AutoEmbedBollywoodPlus extends BaseProvider {
                             url: this.createProxyUrl(ep, this.HEADERS as any),
                             type: 'hls' as SourceType,
                             quality: 'auto',
+                            audioTracks: [{ language: 'eng', label: 'English' }],
                             provider: { id: this.id, name: this.name }
                         }],
                         subtitles: [],
