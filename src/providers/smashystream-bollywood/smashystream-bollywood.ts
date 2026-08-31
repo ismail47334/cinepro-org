@@ -62,6 +62,7 @@ export class SmashyStreamBollywood extends BaseProvider {
                         url: this.createProxyUrl(m[1], this.HEADERS as any),
                         type: (m[1].includes('.m3u8') ? 'hls' : 'mp4') as SourceType,
                         quality: '1080',
+                        audioTracks: [{ language: 'eng', label: 'English' }],
                         provider: { id: this.id, name: this.name }
                     });
                 }
@@ -73,6 +74,7 @@ export class SmashyStreamBollywood extends BaseProvider {
                     url: this.createProxyUrl(url, this.HEADERS as any),
                     type: 'hls' as SourceType,
                     quality: 'auto',
+                    audioTracks: [{ language: 'eng', label: 'English' }],
                     provider: { id: this.id, name: this.name }
                 });
             }
