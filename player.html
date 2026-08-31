@@ -3,308 +3,143 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MoviMoon Ultimate Player</title>
+<title>MoviMoon Ultimate Player v4 - Ad Fixed</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#050507;color:#fff;font-family:'Outfit',system-ui;overflow:hidden}
-
 #playerWrap{width:100vw;height:100vh;position:relative;background:radial-gradient(1200px 600px at 50% -20%, #1a1a2e 0%, #000 60%);display:flex;align-items:center;justify-content:center}
 video{width:100%;height:100%;object-fit:contain;background:#000;position:absolute;inset:0;z-index:1}
-
-/* Loading Screen */
 #loadingScreen{position:absolute;inset:0;z-index:20;background:radial-gradient(800px 400px at 50% 0%, #1e1e3a 0%, #050507 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease}
 #loadingScreen.hide{opacity:0;pointer-events:none}
 .logoBox{display:flex;align-items:center;gap:10px;margin-bottom:24px}
-.logoIcon{width:44px;height:44px;background:linear-gradient(135deg,#a855f7,#22d3ee);border-radius:12px;display:grid;place-items:center;font-size:20px;box-shadow:0 8px 24px rgba(168,85,247,.4)}
-.logoText{font-weight:800;font-size:22px;letter-spacing:-.5px}
-.logoText span{color:#a855f7}
+.logoIcon{width:44px;height:44px;background:linear-gradient(135deg,#a855f7,#22d3ee);border-radius:12px;display:grid;place-items:center;font-size:20px}
+.logoText{font-weight:800;font-size:22px}.logoText span{color:#a855f7}
 .spinnerWrap{position:relative;width:64px;height:64px;margin-bottom:20px}
 .spinnerOuter{position:absolute;inset:0;border:3px solid rgba(255,255,255,.08);border-top-color:#a855f7;border-right-color:#22d3ee;border-radius:50%;animation:spin 1s linear infinite}
-.spinnerInner{position:absolute;inset:10px;border:2px solid rgba(255,255,255,.05);border-bottom-color:#fff;border-radius:50%;animation:spin .6s linear infinite reverse}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loadTitle{font-weight:600;font-size:15px;margin-bottom:6px}
-.loadSub{font-size:12px;color:#888;max-width:260px;text-align:center;line-height:1.4}
-.progressBar{width:200px;height:2px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:16px;overflow:hidden}
-.progressFill{height:100%;width:0%;background:linear-gradient(90deg,#a855f7,#22d3ee);transition:width .4s ease}
+.loadSub{font-size:12px;color:#888;max-width:280px;text-align:center}
+.progressBar{width:220px;height:2px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:16px;overflow:hidden}
+.progressFill{height:100%;width:0%;background:linear-gradient(90deg,#a855f7,#22d3ee);transition:width .4s}
 .providerCount{margin-top:10px;font-size:11px;color:#666}
-
-/* Top Bar */
 #topBar{position:absolute;top:0;left:0;right:0;z-index:10;padding:12px 16px;background:linear-gradient(to bottom, rgba(0,0,0,.9), transparent);display:flex;justify-content:space-between;align-items:center}
 #status{font-size:12px;background:rgba(255,255,255,.1);backdrop-filter:blur(10px);padding:6px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:8px}
 .dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-
-/* Error Overlay */
 #errorOverlay{position:absolute;inset:0;z-index:25;background:rgba(0,0,0,.92);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
 #errorOverlay.show{display:flex}
 .errorIcon{width:64px;height:64px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:16px;display:grid;place-items:center;font-size:28px;color:#ef4444;margin-bottom:16px}
 .errorTitle{font-size:18px;font-weight:700;margin-bottom:8px}
-.errorDesc{font-size:13px;color:#888;max-width:320px;line-height:1.5;margin-bottom:20px}
-.btnTry{padding:10px 20px;background:#fff;color:#000;border:0;border-radius:8px;font-weight:600;cursor:pointer;transition:.2s}
-.btnTry:hover{transform:scale(1.05)}
-
-/* Server Bar - Smart */
-#serverBar{position:absolute;bottom:0;left:0;right:0;z-index:12;background:linear-gradient(transparent, rgba(0,0,0,.95));padding:50px 12px 12px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;opacity:0;transform:translateY(10px);transition:.4s}
-#playerWrap:hover #serverBar, #serverBar.show{opacity:1;transform:translateY(0)}
-#serverBar::-webkit-scrollbar{display:none}
-.srv{flex-shrink:0;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px);padding:8px 14px;border-radius:10px;font-size:12px;cursor:pointer;transition:.2s;min-width:90px;position:relative}
-.srv:hover{border-color:rgba(168,85,247,.5);background:rgba(168,85,247,.15)}
-.srv.active{background:#fff;color:#000;border-color:#fff;box-shadow:0 4px 16px rgba(255,255,255,.2)}
-.srv.failed{opacity:.3;pointer-events:none;text-decoration:line-through}
-.srv.failed::after{content:'✕';position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:#ef4444;color:#fff;border-radius:50%;font-size:9px;display:grid;place-items:center}
-.srvName{font-weight:600}
+.errorDesc{font-size:13px;color:#888;max-width:340px;line-height:1.5;margin-bottom:20px}
+.btnTry{padding:10px 20px;background:#fff;color:#000;border:0;border-radius:8px;font-weight:600;cursor:pointer}
+#serverBar{position:absolute;bottom:0;left:0;right:0;z-index:12;background:linear-gradient(transparent, rgba(0,0,0,.95));padding:50px 12px 12px;display:flex;gap:8px;overflow-x:auto;opacity:0;transform:translateY(10px);transition:.4s}
+#playerWrap:hover #serverBar,#serverBar.show{opacity:1;transform:translateY(0)}
+.srv{flex-shrink:0;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px);padding:8px 14px;border-radius:10px;font-size:12px;cursor:pointer;min-width:90px}
+.srv.active{background:#fff;color:#000;border-color:#fff}
+.srv.failed{display:none!important}
 .srvQuality{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(34,197,94,.15);color:#22c55e}
-.srv.active .srvQuality{background:rgba(0,0,0,.1);color:#000}
-.adBadge{display:none}
-.srv.isAd{border-color:#ef4444;background:rgba(239,68,68,.1)}
 </style>
 </head>
 <body>
 <div id="playerWrap">
-  <!-- Loading -->
   <div id="loadingScreen">
     <div class="logoBox"><div class="logoIcon"><i class="fas fa-clapperboard"></i></div><div class="logoText">Movi<span>Moon</span></div></div>
-    <div class="spinnerWrap"><div class="spinnerOuter"></div><div class="spinnerInner"></div></div>
+    <div class="spinnerWrap"><div class="spinnerOuter"></div></div>
     <div class="loadTitle" id="loadTitle">Searching 17 Providers...</div>
-    <div class="loadSub" id="loadSub">Finding best quality for your movie</div>
+    <div class="loadSub" id="loadSub">Finding best quality</div>
     <div class="progressBar"><div class="progressFill" id="progressFill"></div></div>
-    <div class="providerCount" id="providerCount">Connecting to CinePro...</div>
+    <div class="providerCount" id="providerCount">Connecting...</div>
   </div>
-
-  <!-- Error -->
   <div id="errorOverlay">
     <div class="errorIcon"><i class="fas fa-triangle-exclamation"></i></div>
     <div class="errorTitle" id="errorTitle">Server Failed</div>
-    <div class="errorDesc" id="errorDesc">This server couldn't fetch the movie. Please try another server from below.</div>
+    <div class="errorDesc" id="errorDesc">Please try another server.</div>
     <button class="btnTry" onclick="tryNextServer()"><i class="fas fa-shuffle"></i> Try Another Server</button>
   </div>
-
-  <div id="topBar">
-    <div id="status"><div class="dot"></div><span id="statusText">Initializing</span></div>
-    <div style="font-size:11px;color:#666" id="qualityInfo">AUTO</div>
-  </div>
-
+  <div id="topBar"><div id="status"><div class="dot"></div><span id="statusText">Initializing</span></div><div id="qualityInfo" style="font-size:11px;color:#666">AUTO</div></div>
   <video id="video" controls autoplay playsinline crossorigin="anonymous"></video>
   <div id="serverBar"></div>
 </div>
-
 <script>
-const params = new URLSearchParams(location.search);
-const tmdbId = params.get('tmdbId') || params.get('id') || '550';
-const type = params.get('type') || 'movie';
-const season = params.get('season') || '1';
-const episode = params.get('episode') || '1';
-const apiBase = params.get('api') || params.get('omssUrl') || 'https://movimoon-cinepro.onrender.com';
-
-const video = document.getElementById('video');
-const statusText = document.getElementById('statusText');
-const loadTitle = document.getElementById('loadTitle');
-const loadSub = document.getElementById('loadSub');
-const progressFill = document.getElementById('progressFill');
-const providerCount = document.getElementById('providerCount');
-const loadingScreen = document.getElementById('loadingScreen');
-const errorOverlay = document.getElementById('errorOverlay');
-const errorTitle = document.getElementById('errorTitle');
-const errorDesc = document.getElementById('errorDesc');
-const bar = document.getElementById('serverBar');
-const qualityInfo = document.getElementById('qualityInfo');
-
-let hls = null;
-let servers = [];
-let currentIdx = 0;
-let adCheckTimer = null;
-
-// AD detection keywords from your screenshot
-const AD_KEYWORDS = ['moviebox','update now','keep watching','lmnx','ad','promo','trailer'];
-const MIN_VALID_DURATION = 120; // 2 minutes - any video shorter than this is considered AD
-
-function setProgress(p){ progressFill.style.width = p+'%'; }
-
+const params=new URLSearchParams(location.search);
+const tmdbId=params.get('tmdbId')||params.get('id')||'550';
+const type=params.get('type')||'movie';
+const season=params.get('season')||'1';
+const episode=params.get('episode')||'1';
+const apiBase=params.get('api')||params.get('omssUrl')||'https://movimoon-cinepro.onrender.com';
+const video=document.getElementById('video');
+const statusText=document.getElementById('statusText');
+const loadTitle=document.getElementById('loadTitle');
+const loadSub=document.getElementById('loadSub');
+const progressFill=document.getElementById('progressFill');
+const providerCount=document.getElementById('providerCount');
+const loadingScreen=document.getElementById('loadingScreen');
+const errorOverlay=document.getElementById('errorOverlay');
+const errorTitle=document.getElementById('errorTitle');
+const errorDesc=document.getElementById('errorDesc');
+const bar=document.getElementById('serverBar');
+const qualityInfo=document.getElementById('qualityInfo');
+let hls=null,servers=[],currentIdx=0;
+function setProgress(p){progressFill.style.width=p+'%';}
 async function init(){
-  setProgress(20);
-  loadTitle.textContent = `Searching for ${type.toUpperCase()} ${tmdbId}`;
-  const endpoint = type === 'tv' 
-    ? `${apiBase}/v1/tv/${tmdbId}/seasons/${season}/episodes/${episode}`
-    : `${apiBase}/v1/movies/${tmdbId}`;
-
+  setProgress(20); loadTitle.textContent=`Searching for ${type.toUpperCase()} ${tmdbId}`;
+  const endpoint=type==='tv'?`${apiBase}/v1/tv/${tmdbId}/seasons/${season}/episodes/${episode}`:`${apiBase}/v1/movies/${tmdbId}`;
   try{
-    setProgress(40);
-    statusText.textContent = `Fetching ${tmdbId}`;
-    providerCount.textContent = `Contacting 17 providers...`;
-    const res = await fetch(endpoint);
+    setProgress(40); statusText.textContent=`Fetching ${tmdbId}`; providerCount.textContent=`Contacting 17 providers...`;
+    const res=await fetch(endpoint,{mode:'cors'});
     if(!res.ok) throw new Error('API '+res.status);
-    const data = await res.json();
+    const data=await res.json();
     setProgress(70);
-
-    let rawSources = data.sources || [];
-    if(!rawSources.length) throw new Error('No sources');
-
-    // SMART FILTER: Remove obviously failed/ad sources immediately
-    servers = rawSources.map((s,i)=>{
-      const prov = s.provider || {};
-      const name = typeof prov === 'string' ? prov : (prov.name || prov.id || `Server ${i+1}`);
-      const q = (s.quality || 'Auto').toString();
-      const url = s.url || '';
-      const isAdUrl = AD_KEYWORDS.some(k=>url.toLowerCase().includes(k)) || url.includes('moviebox');
-      return {name, quality:q, url, raw:s, failed:false, isAd:isAdUrl, idx:i};
-    }).filter(x=>{
-      // Hide if URL empty or is known ad URL
-      if(!x.url) return false;
-      if(x.isAd) { console.warn('Blocked AD URL:', x.name); return false; }
-      return true;
-    });
-
-    if(!servers.length) throw new Error('All servers blocked as ads - No valid movie found');
-
-    setProgress(90);
-    providerCount.textContent = `${servers.length} valid servers found`;
-    loadSub.textContent = `Found ${servers.length} servers - Starting playback`;
-
-    renderServers();
-    setProgress(100);
-    setTimeout(()=> loadingScreen.classList.add('hide'), 600);
-    playServer(0);
-
-  }catch(e){
-    showError('Failed to Fetch', e.message + ' - Please try another movie or check API', false);
-  }
+    let raw=data.sources||[];
+    if(!raw.length) throw new Error('No sources for ID '+tmdbId);
+    servers=raw.map((s,i)=>{const p=s.provider||{}; const n=typeof p==='string'?p:(p.name||p.id||`Server ${i+1}`); const q=(s.quality||'Auto').toString(); const u=s.url||''; return {name:n,quality:q,url:u,failed:false,idx:i};}).filter(x=>!!x.url);
+    if(!servers.length) throw new Error('No valid URLs');
+    setProgress(90); providerCount.textContent=`${servers.length} servers found`; loadSub.textContent=`${servers.length} servers - Starting`;
+    render(); setProgress(100); setTimeout(()=>loadingScreen.classList.add('hide'),500); play(0);
+  }catch(e){ console.error(e); showError('Failed to Fetch', e.message+' - If opening from E:/Downloads file://, use Live Server. Upload to GitHub Pages will fix CORS.', false); }
 }
-
-function renderServers(){
-  bar.innerHTML='';
-  servers.forEach((srv,i)=>{
-    if(srv.failed) return; // SMART: Don't show failed servers
-    const btn = document.createElement('div');
-    btn.className = 'srv'+(i===currentIdx?' active':'') + (srv.isAd?' isAd':'');
-    btn.dataset.idx=i;
-    btn.innerHTML = `<span class="srvName">${srv.name}</span><span class="srvQuality">${srv.quality}</span>`;
-    btn.onclick = ()=> playServer(i);
-    bar.appendChild(btn);
-  });
-  // Show bar for 3 sec on load
-  bar.classList.add('show');
-  setTimeout(()=> bar.classList.remove('show'), 3500);
+function render(){
+  bar.innerHTML=''; let vis=0;
+  servers.forEach((s,i)=>{ if(s.failed) return; vis++; const b=document.createElement('div'); b.className='srv'+(i===currentIdx?' active':''); b.dataset.idx=i; b.innerHTML=`<span>${s.name}</span><span class="srvQuality">${s.quality}</span>`; b.onclick=()=>play(i); bar.appendChild(b); });
+  if(vis===0) showError('All Servers Failed','No working servers.',false);
+  bar.classList.add('show'); setTimeout(()=>bar.classList.remove('show'),4000);
 }
-
-function showError(title, desc, canRetry=true){
-  errorTitle.textContent = title;
-  errorDesc.textContent = desc;
-  errorOverlay.classList.add('show');
-  loadingScreen.classList.add('hide');
-  if(!canRetry) document.querySelector('.btnTry').style.display='none';
-}
-
+function showError(t,d,r=true){ errorTitle.textContent=t; errorDesc.textContent=d; errorOverlay.classList.add('show'); loadingScreen.classList.add('hide'); document.querySelector('.btnTry').style.display=r?'block':'none'; }
 function hideError(){ errorOverlay.classList.remove('show'); }
-
-function tryNextServer(){
-  hideError();
-  const nextIdx = servers.findIndex((s,i)=> i>currentIdx && !s.failed);
-  if(nextIdx!==-1) playServer(nextIdx);
-  else {
-    const firstValid = servers.findIndex(s=>!s.failed);
-    if(firstValid!==-1) playServer(firstValid);
-    else showError('All Servers Failed','Please try another movie. All providers failed for this ID.', false);
-  }
-}
-
-function markFailed(idx){
-  if(servers[idx]) { servers[idx].failed=true; console.log('Marked failed:', servers[idx].name); }
-  renderServers();
-}
-
-function playServer(idx){
-  if(idx<0 || idx>=servers.length) return;
-  if(servers[idx].failed) { tryNextServer(); return; }
-  currentIdx = idx;
-  const srv = servers[idx];
-  hideError();
-  statusText.textContent = `Playing: ${srv.name} ${srv.quality}`;
-  qualityInfo.textContent = srv.quality;
+function tryNextServer(){ hideError(); let n=servers.findIndex((s,i)=>i>currentIdx&&!s.failed); if(n===-1) n=servers.findIndex(s=>!s.failed); if(n!==-1) play(n); else showError('All Failed','All providers failed.',false); }
+function markFailed(i){ if(servers[i]) servers[i].failed=true; render(); }
+function play(idx){
+  if(idx<0||idx>=servers.length) return; if(servers[idx].failed){ tryNextServer(); return; }
+  currentIdx=idx; const srv=servers[idx]; hideError();
+  statusText.textContent=`Playing: ${srv.name} ${srv.quality}`; qualityInfo.textContent=srv.quality;
   document.querySelectorAll('.srv').forEach(b=> b.classList.toggle('active', parseInt(b.dataset.idx)===idx));
-
-  // Reset ad detection
-  clearTimeout(adCheckTimer);
-  if(hls){ hls.destroy(); hls=null; }
-  video.pause(); video.removeAttribute('src'); video.load();
-
-  const url = srv.url;
-  console.log('Playing:', srv.name, url);
-
-  // Loading overlay for server switch
-  if(loadingScreen.classList.contains('hide')){
-    loadingScreen.classList.remove('hide');
-    loadTitle.textContent = `Switching to ${srv.name}`;
-    loadSub.textContent = `Quality: ${srv.quality}`;
-    setProgress(50);
-  }
-
-  if(url.includes('.m3u8') || url.includes('.mp4') || url.includes('proxy')){
-    if(url.includes('.m3u8') && Hls.isSupported()){
-      hls = new Hls({maxBufferLength:30, maxMaxBufferLength:60});
-      hls.loadSource(url);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, ()=>{
-        setProgress(100);
-        loadingScreen.classList.add('hide');
-        video.play().catch(()=>{});
-      });
-      hls.on(Hls.Events.ERROR, (ev,data)=>{
-        if(data.fatal){
-          markFailed(idx);
-          showError('Server Error', `Server ${srv.name} failed to load. Please try another server.`);
-        }
-      });
-    }else{
-      video.src = url;
-      video.play().then(()=>{
-        setProgress(100);
-        loadingScreen.classList.add('hide');
-      }).catch(e=>{
-        markFailed(idx);
-        showError('Playback Failed', 'This server blocked playback. Trying another...');
-        setTimeout(tryNextServer, 1200);
-      });
-    }
-
-    // SMART AD DETECTION: Check duration after metadata loads
-    video.onloadedmetadata = ()=>{
-      const dur = video.duration;
-      console.log('Duration:', dur, 'for', srv.name);
-      if(dur && dur < MIN_VALID_DURATION){
-        // This is AD video (22 sec MovieBox ad from your screenshot)
-        console.warn('AD DETECTED - Duration too short:', dur, srv.name);
-        markFailed(idx);
-        showError('Ad Detected & Blocked', `Server ${srv.name} returned a ${Math.round(dur)}s ad video (MovieBox promo). Automatically switching...`);
-        setTimeout(tryNextServer, 1500);
-      }else{
-        setProgress(100);
-        loadingScreen.classList.add('hide');
-      }
-    };
-
-    video.onerror = ()=>{
+  if(hls){ hls.destroy(); hls=null; } video.pause(); video.removeAttribute('src'); video.load();
+  const url=srv.url;
+  if(loadingScreen.classList.contains('hide')){ loadingScreen.classList.remove('hide'); loadTitle.textContent=`Switching to ${srv.name}`; loadSub.textContent=`Quality: ${srv.quality}`; setProgress(50); }
+  function onMeta(){
+    const d=video.duration;
+    if(d && isFinite(d) && d < 90){
+      console.warn('AD BLOCKED',srv.name,d);
       markFailed(idx);
-      showError('Server Failed', `Server ${srv.name} encountered error. Please try another server.`);
-    };
-
-  }else{
-    // If it's an embed (like vidfast etc), fallback to iframe mode? For now treat as fail
-    markFailed(idx);
-    showError('Invalid Stream', 'This server returned invalid data.');
+      showError('Ad Blocked', `Server ${srv.name} returned ${Math.round(d)}s promo (MovieBox ad blocked like your screenshot). Auto switching...`);
+      setTimeout(tryNextServer,1500);
+    }else{ setProgress(100); loadingScreen.classList.add('hide'); }
   }
+  if(url.includes('.m3u8') && Hls.isSupported()){
+    hls=new Hls({maxBufferLength:30}); hls.loadSource(url); hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, ()=>{ video.play().catch(()=>{}); });
+    hls.on(Hls.Events.ERROR, (ev,data)=>{ if(data.fatal){ markFailed(idx); showError('Server Failed', `Server ${srv.name} failed. Please try another server.`); } });
+  }else{
+    video.src=url; video.play().then(()=>{ setProgress(100); loadingScreen.classList.add('hide'); }).catch(()=>{ markFailed(idx); showError('Playback Failed','Trying next...'); setTimeout(tryNextServer,1000); });
+  }
+  video.onloadedmetadata=onMeta;
+  video.onerror=()=>{ markFailed(idx); showError('Server Failed', `Server ${srv.name} error.`); };
+  setTimeout(()=>{ if(video.duration && video.duration<90) onMeta(); },5000);
 }
-
-// Auto hide server bar after inactivity
-let barTimeout;
-document.getElementById('playerWrap').addEventListener('mousemove', ()=>{
-  bar.classList.add('show');
-  clearTimeout(barTimeout);
-  barTimeout = setTimeout(()=> bar.classList.remove('show'), 3000);
-});
-
+document.getElementById('playerWrap').addEventListener('mousemove', ()=>{ bar.classList.add('show'); clearTimeout(window._barT); window._barT=setTimeout(()=>bar.classList.remove('show'),3000); });
 init();
 </script>
 </body>
