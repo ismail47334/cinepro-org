@@ -71,10 +71,10 @@ export class SuperEmbed extends BaseProvider {
                 if (sources.length) break;
             }
 
-            // Fallback: if no direct link, return embed itself (proxy will handle)
+            // FIX: Direct embed URL, not proxied
             if (sources.length === 0) {
                 sources.push({
-                    url: this.createProxyUrl(embedUrl, this.HEADERS as any),
+                    url: embedUrl,
                     type: 'hls' as SourceType,
                     quality: 'auto',
                     audioTracks: [{ language: 'eng', label: 'English' }],
