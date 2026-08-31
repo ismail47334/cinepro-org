@@ -71,9 +71,10 @@ export class AutoEmbedBollywoodPlus extends BaseProvider {
                     }
 
                     // Fallback: return embed URL
+                    // FIX: Return DIRECT embed URL for iframe, not proxied (proxy breaks embed JS)
                     return {
                         sources: [{
-                            url: this.createProxyUrl(ep, this.HEADERS as any),
+                            url: ep,
                             type: 'hls' as SourceType,
                             quality: 'auto',
                             audioTracks: [{ language: 'eng', label: 'English' }],
