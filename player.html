@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MoviMoon Ultimate Player v4 - Ad Fixed</title>
+<title>MoviMoon v6 - Embed + HLS Hybrid</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
@@ -12,13 +12,14 @@
 body{background:#050507;color:#fff;font-family:'Outfit',system-ui;overflow:hidden}
 #playerWrap{width:100vw;height:100vh;position:relative;background:radial-gradient(1200px 600px at 50% -20%, #1a1a2e 0%, #000 60%);display:flex;align-items:center;justify-content:center}
 video{width:100%;height:100%;object-fit:contain;background:#000;position:absolute;inset:0;z-index:1}
+iframe{width:100%;height:100%;position:absolute;inset:0;z-index:2;border:0;background:#000;display:none}
+iframe.active{display:block}
 #loadingScreen{position:absolute;inset:0;z-index:20;background:radial-gradient(800px 400px at 50% 0%, #1e1e3a 0%, #050507 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease}
 #loadingScreen.hide{opacity:0;pointer-events:none}
 .logoBox{display:flex;align-items:center;gap:10px;margin-bottom:24px}
 .logoIcon{width:44px;height:44px;background:linear-gradient(135deg,#a855f7,#22d3ee);border-radius:12px;display:grid;place-items:center;font-size:20px}
 .logoText{font-weight:800;font-size:22px}.logoText span{color:#a855f7}
-.spinnerWrap{position:relative;width:64px;height:64px;margin-bottom:20px}
-.spinnerOuter{position:absolute;inset:0;border:3px solid rgba(255,255,255,.08);border-top-color:#a855f7;border-right-color:#22d3ee;border-radius:50%;animation:spin 1s linear infinite}
+.spinnerOuter{width:64px;height:64px;border:3px solid rgba(255,255,255,.08);border-top-color:#a855f7;border-right-color:#22d3ee;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:20px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loadTitle{font-weight:600;font-size:15px;margin-bottom:6px}
 .loadSub{font-size:12px;color:#888;max-width:280px;text-align:center}
@@ -31,36 +32,38 @@ video{width:100%;height:100%;object-fit:contain;background:#000;position:absolut
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 #errorOverlay{position:absolute;inset:0;z-index:25;background:rgba(0,0,0,.92);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
 #errorOverlay.show{display:flex}
-.errorIcon{width:64px;height:64px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:16px;display:grid;place-items:center;font-size:28px;color:#ef4444;margin-bottom:16px}
-.errorTitle{font-size:18px;font-weight:700;margin-bottom:8px}
-.errorDesc{font-size:13px;color:#888;max-width:340px;line-height:1.5;margin-bottom:20px}
-.btnTry{padding:10px 20px;background:#fff;color:#000;border:0;border-radius:8px;font-weight:600;cursor:pointer}
+.btnTry{padding:10px 20px;background:#fff;color:#000;border:0;border-radius:8px;font-weight:600;cursor:pointer;margin:6px}
 #serverBar{position:absolute;bottom:0;left:0;right:0;z-index:12;background:linear-gradient(transparent, rgba(0,0,0,.95));padding:50px 12px 12px;display:flex;gap:8px;overflow-x:auto;opacity:0;transform:translateY(10px);transition:.4s}
 #playerWrap:hover #serverBar,#serverBar.show{opacity:1;transform:translateY(0)}
 .srv{flex-shrink:0;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px);padding:8px 14px;border-radius:10px;font-size:12px;cursor:pointer;min-width:90px}
 .srv.active{background:#fff;color:#000;border-color:#fff}
 .srv.failed{display:none!important}
 .srvQuality{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(34,197,94,.15);color:#22c55e}
+.srv.active .srvQuality{background:rgba(0,0,0,.1);color:#000}
 </style>
 </head>
 <body>
 <div id="playerWrap">
   <div id="loadingScreen">
     <div class="logoBox"><div class="logoIcon"><i class="fas fa-clapperboard"></i></div><div class="logoText">Movi<span>Moon</span></div></div>
-    <div class="spinnerWrap"><div class="spinnerOuter"></div></div>
-    <div class="loadTitle" id="loadTitle">Searching 17 Providers...</div>
+    <div class="spinnerOuter"></div>
+    <div class="loadTitle" id="loadTitle">Searching Providers...</div>
     <div class="loadSub" id="loadSub">Finding best quality</div>
     <div class="progressBar"><div class="progressFill" id="progressFill"></div></div>
     <div class="providerCount" id="providerCount">Connecting...</div>
   </div>
   <div id="errorOverlay">
-    <div class="errorIcon"><i class="fas fa-triangle-exclamation"></i></div>
-    <div class="errorTitle" id="errorTitle">Server Failed</div>
-    <div class="errorDesc" id="errorDesc">Please try another server.</div>
-    <button class="btnTry" onclick="tryNextServer()"><i class="fas fa-shuffle"></i> Try Another Server</button>
+    <div style="font-size:40px;margin-bottom:12px">⚠️</div>
+    <div id="errorTitle" style="font-weight:700;margin-bottom:8px">Server Failed</div>
+    <div id="errorDesc" style="font-size:13px;color:#888;max-width:340px;margin-bottom:20px">Please try another server.</div>
+    <div>
+      <button class="btnTry" onclick="tryNextServer()">Try Next Server</button>
+      <button class="btnTry" onclick="tryBackupServers()" style="background:#a855f7;color:#fff">Try Bollywood Backup</button>
+    </div>
   </div>
   <div id="topBar"><div id="status"><div class="dot"></div><span id="statusText">Initializing</span></div><div id="qualityInfo" style="font-size:11px;color:#666">AUTO</div></div>
-  <video id="video" controls autoplay playsinline crossorigin="anonymous"></video>
+  <video id="video" controls playsinline crossorigin="anonymous"></video>
+  <iframe id="embedFrame" allowfullscreen allow="autoplay; encrypted-media; fullscreen"></iframe>
   <div id="serverBar"></div>
 </div>
 <script>
@@ -69,8 +72,9 @@ const tmdbId=params.get('tmdbId')||params.get('id')||'550';
 const type=params.get('type')||'movie';
 const season=params.get('season')||'1';
 const episode=params.get('episode')||'1';
-const apiBase=params.get('api')||params.get('omssUrl')||'https://movimoon-cinepro.onrender.com';
+const apiBase=params.get('api')||'https://movimoon-cinepro.onrender.com';
 const video=document.getElementById('video');
+const iframe=document.getElementById('embedFrame');
 const statusText=document.getElementById('statusText');
 const loadTitle=document.getElementById('loadTitle');
 const loadSub=document.getElementById('loadSub');
@@ -83,12 +87,37 @@ const errorDesc=document.getElementById('errorDesc');
 const bar=document.getElementById('serverBar');
 const qualityInfo=document.getElementById('qualityInfo');
 let hls=null,servers=[],currentIdx=0;
+let isEmbedMode=false;
+
 function setProgress(p){progressFill.style.width=p+'%';}
+function isEmbedUrl(url){
+  // If URL is proxy to autoembed.co or embed.smashystream or not .m3u8/.mp4, treat as embed
+  const low=url.toLowerCase();
+  if(low.includes('autoembed') || low.includes('smashystream') || low.includes('multiembed')) return true;
+  if(low.includes('.m3u8') || low.includes('.mp4') || low.includes('.mkv')) return false;
+  // Proxy URLs that wrap HTML pages
+  if(low.includes('/v1/proxy')) {
+    // Decode proxy data to check original URL
+    try{
+      const dataParam=new URL(url).searchParams.get('data');
+      if(dataParam){
+        const decoded=JSON.parse(decodeURIComponent(dataParam));
+        const orig=(decoded.url||'').toLowerCase();
+        if(orig.includes('autoembed') || orig.includes('smashystream') || orig.includes('multiembed')) return true;
+        if(orig.includes('.m3u8') || orig.includes('.mp4')) return false;
+        return true; // default embed for proxy
+      }
+    }catch{}
+    return true;
+  }
+  return true;
+}
+
 async function init(){
   setProgress(20); loadTitle.textContent=`Searching for ${type.toUpperCase()} ${tmdbId}`;
   const endpoint=type==='tv'?`${apiBase}/v1/tv/${tmdbId}/seasons/${season}/episodes/${episode}`:`${apiBase}/v1/movies/${tmdbId}`;
   try{
-    setProgress(40); statusText.textContent=`Fetching ${tmdbId}`; providerCount.textContent=`Contacting 17 providers...`;
+    setProgress(40); statusText.textContent=`Fetching ${tmdbId}`; providerCount.textContent=`Contacting providers...`;
     const res=await fetch(endpoint,{mode:'cors'});
     if(!res.ok) throw new Error('API '+res.status);
     const data=await res.json();
@@ -97,49 +126,90 @@ async function init(){
     if(!raw.length) throw new Error('No sources for ID '+tmdbId);
     servers=raw.map((s,i)=>{const p=s.provider||{}; const n=typeof p==='string'?p:(p.name||p.id||`Server ${i+1}`); const q=(s.quality||'Auto').toString(); const u=s.url||''; return {name:n,quality:q,url:u,failed:false,idx:i};}).filter(x=>!!x.url);
     if(!servers.length) throw new Error('No valid URLs');
-    setProgress(90); providerCount.textContent=`${servers.length} servers found`; loadSub.textContent=`${servers.length} servers - Starting`;
-    render(); setProgress(100); setTimeout(()=>loadingScreen.classList.add('hide'),500); play(0);
-  }catch(e){ console.error(e); showError('Failed to Fetch', e.message+' - If opening from E:/Downloads file://, use Live Server. Upload to GitHub Pages will fix CORS.', false); }
+    setProgress(90); 
+    providerCount.textContent=`${servers.length} servers found from ${data.providerCount||'20'} providers`;
+    loadSub.textContent=`${servers.length} servers - Starting`;
+    // Update loading title to show actual provider count
+    loadTitle.textContent=`Found ${servers.length} servers`;
+    render(); setProgress(100); setTimeout(()=>loadingScreen.classList.add('hide'),600); play(0);
+  }catch(e){ console.error(e); showError('Failed to Fetch', e.message, false); }
 }
 function render(){
   bar.innerHTML=''; let vis=0;
   servers.forEach((s,i)=>{ if(s.failed) return; vis++; const b=document.createElement('div'); b.className='srv'+(i===currentIdx?' active':''); b.dataset.idx=i; b.innerHTML=`<span>${s.name}</span><span class="srvQuality">${s.quality}</span>`; b.onclick=()=>play(i); bar.appendChild(b); });
-  if(vis===0) showError('All Servers Failed','No working servers.',false);
-  bar.classList.add('show'); setTimeout(()=>bar.classList.remove('show'),4000);
+  if(vis===0) showError('All Failed','All providers failed. Try Bollywood Backup.', true);
+  bar.classList.add('show'); setTimeout(()=>bar.classList.remove('show'),5000);
 }
-function showError(t,d,r=true){ errorTitle.textContent=t; errorDesc.textContent=d; errorOverlay.classList.add('show'); loadingScreen.classList.add('hide'); document.querySelector('.btnTry').style.display=r?'block':'none'; }
+function showError(t,d,r=true){ errorTitle.textContent=t; errorDesc.textContent=d; errorOverlay.classList.add('show'); loadingScreen.classList.add('hide'); }
 function hideError(){ errorOverlay.classList.remove('show'); }
-function tryNextServer(){ hideError(); let n=servers.findIndex((s,i)=>i>currentIdx&&!s.failed); if(n===-1) n=servers.findIndex(s=>!s.failed); if(n!==-1) play(n); else showError('All Failed','All providers failed.',false); }
+function tryNextServer(){ hideError(); let n=servers.findIndex((s,i)=>i>currentIdx&&!s.failed); if(n===-1) n=servers.findIndex(s=>!s.failed); if(n!==-1) play(n); else showError('All Failed','All providers failed.', true); }
+function tryBackupServers(){
+  // Try AutoEmbed and SmashyStream first
+  hideError();
+  const backupIdx=servers.findIndex(s=> s.name.toLowerCase().includes('autoembed') || s.name.toLowerCase().includes('smashy'));
+  if(backupIdx!==-1){ play(backupIdx); return; }
+  tryNextServer();
+}
 function markFailed(i){ if(servers[i]) servers[i].failed=true; render(); }
+
 function play(idx){
   if(idx<0||idx>=servers.length) return; if(servers[idx].failed){ tryNextServer(); return; }
   currentIdx=idx; const srv=servers[idx]; hideError();
   statusText.textContent=`Playing: ${srv.name} ${srv.quality}`; qualityInfo.textContent=srv.quality;
   document.querySelectorAll('.srv').forEach(b=> b.classList.toggle('active', parseInt(b.dataset.idx)===idx));
-  if(hls){ hls.destroy(); hls=null; } video.pause(); video.removeAttribute('src'); video.load();
+  if(hls){ hls.destroy(); hls=null; }
+  video.pause(); video.removeAttribute('src'); video.load();
+  video.style.display='none'; iframe.classList.remove('active'); iframe.src='';
+
   const url=srv.url;
+  console.log('Playing',srv.name,url,'embed?',isEmbedUrl(url));
+
   if(loadingScreen.classList.contains('hide')){ loadingScreen.classList.remove('hide'); loadTitle.textContent=`Switching to ${srv.name}`; loadSub.textContent=`Quality: ${srv.quality}`; setProgress(50); }
-  function onMeta(){
-    const d=video.duration;
-    if(d && isFinite(d) && d < 90){
-      console.warn('AD BLOCKED',srv.name,d);
-      markFailed(idx);
-      showError('Ad Blocked', `Server ${srv.name} returned ${Math.round(d)}s promo (MovieBox ad blocked like your screenshot). Auto switching...`);
-      setTimeout(tryNextServer,1500);
-    }else{ setProgress(100); loadingScreen.classList.add('hide'); }
+
+  if(isEmbedUrl(url)){
+    // EMBED MODE - use iframe
+    isEmbedMode=true;
+    video.style.display='none';
+    iframe.classList.add('active');
+    iframe.src=url;
+    setProgress(100);
+    loadingScreen.classList.add('hide');
+    statusText.textContent=`Playing (Embed): ${srv.name}`;
+    // Auto detect if iframe fails after 8 sec
+    setTimeout(()=>{
+      // If still loading screen hidden and no error, assume success
+      // If user wants to switch, they can
+    }, 8000);
+  } else {
+    // HLS/MP4 MODE - use video
+    isEmbedMode=false;
+    iframe.classList.remove('active');
+    video.style.display='block';
+    
+    function onMeta(){
+      const d=video.duration;
+      if(d && isFinite(d) && d < 90){
+        console.warn('AD BLOCKED',srv.name,d);
+        markFailed(idx);
+        showError('Ad Blocked', `${srv.name} returned ${Math.round(d)}s promo (MovieBox ad). Switching...`);
+        setTimeout(tryNextServer,1500);
+      }else{ setProgress(100); loadingScreen.classList.add('hide'); }
+    }
+
+    if(url.includes('.m3u8') && Hls.isSupported()){
+      hls=new Hls({maxBufferLength:30}); hls.loadSource(url); hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, ()=>{ video.play().catch(()=>{}); });
+      hls.on(Hls.Events.ERROR, (ev,data)=>{ if(data.fatal){ markFailed(idx); showError('Server Failed', `${srv.name} failed.`); } });
+    }else{
+      video.src=url; video.play().then(()=>{ setProgress(100); loadingScreen.classList.add('hide'); }).catch(()=>{ markFailed(idx); showError('Playback Failed','Trying next...'); setTimeout(tryNextServer,1000); });
+    }
+    video.onloadedmetadata=onMeta;
+    video.onerror=()=>{ markFailed(idx); showError('Server Failed', `${srv.name} error.`); };
+    setTimeout(()=>{ if(video.duration && video.duration<90) onMeta(); },5000);
   }
-  if(url.includes('.m3u8') && Hls.isSupported()){
-    hls=new Hls({maxBufferLength:30}); hls.loadSource(url); hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, ()=>{ video.play().catch(()=>{}); });
-    hls.on(Hls.Events.ERROR, (ev,data)=>{ if(data.fatal){ markFailed(idx); showError('Server Failed', `Server ${srv.name} failed. Please try another server.`); } });
-  }else{
-    video.src=url; video.play().then(()=>{ setProgress(100); loadingScreen.classList.add('hide'); }).catch(()=>{ markFailed(idx); showError('Playback Failed','Trying next...'); setTimeout(tryNextServer,1000); });
-  }
-  video.onloadedmetadata=onMeta;
-  video.onerror=()=>{ markFailed(idx); showError('Server Failed', `Server ${srv.name} error.`); };
-  setTimeout(()=>{ if(video.duration && video.duration<90) onMeta(); },5000);
 }
-document.getElementById('playerWrap').addEventListener('mousemove', ()=>{ bar.classList.add('show'); clearTimeout(window._barT); window._barT=setTimeout(()=>bar.classList.remove('show'),3000); });
+
+document.getElementById('playerWrap').addEventListener('mousemove', ()=>{ bar.classList.add('show'); clearTimeout(window._barT); window._barT=setTimeout(()=>bar.classList.remove('show'),4000); });
 init();
 </script>
 </body>
